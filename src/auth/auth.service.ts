@@ -35,6 +35,13 @@ export class AuthService {
     const accessToken = this.generateAccessToken(newUser.id);
     const refreshToken = this.generateRefreshToken(newUser.id);
 
+    await this.refreshTokenRepository.save(
+      this.refreshTokenRepository.create({
+        token: refreshToken,
+        user: { id: newUser.id },
+      }),
+    );
+
     return { id: newUser.id, accessToken, refreshToken };
   }
 
@@ -50,17 +57,19 @@ export class AuthService {
 
   private generateAccessToken(userId: string) {
     const payload = { sub: userId, tokenType: 'access' };
-    return this.jwtService.sign(payload);
+    return this.jwtService.sign(payload, { expiresIn: '1d' });
   }
 
   private generateRefreshToken(userId: string) {
     const payload = { sub: userId, tokenType: 'refresh' };
-    return this.jwtService.sign(payload);
+    return this.jwtService.sign(payload, { expiresIn: '30d' });
   }
 
   private async createRefreshTokenUsingUser(userId: string, token: string) {
     let refreshTokenEntity = await this.refreshTokenRepository.findOneBy({
-      token,
+      user: {
+        id: userId,
+      },
     });
 
     if (refreshTokenEntity) {

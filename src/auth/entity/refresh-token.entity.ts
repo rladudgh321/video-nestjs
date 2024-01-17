@@ -18,9 +18,6 @@ export class RefreshToken {
   @Column()
   token: string;
 
-  @Column({ type: 'enum', enum: Role })
-  role: Role = Role.User;
-
   @CreateDateColumn()
   createdAt: Date;
 
